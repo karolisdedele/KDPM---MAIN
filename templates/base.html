@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href={% static 'css/styles.css' %}>
+    <link rel="shortcut icon" href={% static 'img/myfavicon.png' %} type="image/x-icon">
+    <link rel="icon" href={% static 'img/myfavicon.png' %} type="image/x-icon">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="body text-light bg-secondary mw-50">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <button class="navbar-toggler ml-auto" type="button" data-toggle="collapse" data-target="#navbarNavDropdown"
+            aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon ml-auto"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+        <ul class="nav navbar-nav navbar-center" id="">
+            <li class="nav-item">
+                <img class="img-nav" alt="" src={% static 'img/myfavicon.png' %} >
+            </li>
+            <li class="nav-item">
+                <a class="nav-link mobile-nav-align" href={% url "home" %}>Home <span class="sr-only">(current)</span>
+                </a>
+            </li>
+        </ul>
+        {% if user.is_authenticated %}
+            <ul class="nav navbar-nav navbar-center">
+                <li class="nav-item">
+                    <a class="nav-link mobile-nav-align" href={% url "add-stored-password" %}>Add account data<span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link mobile-nav-align" href={% url "view-stored-passwords" %}>View stored passwords<span
+                            class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link mobile-nav-align" href={% url "about" %}>About KDPM</a>
+                </li>
+
+            </ul>
+            <ul class="nav navbar-nav navbar-center login-align">
+            <li class="nav-item dropdown login-align">
+                <a class="nav-link dropdown-toggle mobile-nav-align login-align" href="#" id="navbarDropdownMenuLink" role="button"
+                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Hello {{ user.username }}
+                </a>
+                <div class="dropdown-menu text-center logged-in-dropdown-position" aria-labelledby="navbarDropdownMenuLink">
+                    <a class="dropdown-item mobile-nav-align " href={% url 'profile' %}>View Profile</a>
+                    <a class="dropdown-item mobile-nav-align " href={% url 'logout' %}>Logout</a>
+                </div>
+            </li>
+        {% else %}
+            <ul class="nav navbar-nav navbar-center">
+                <li class="nav-item">
+                    <a class="nav-link mobile-nav-align" href={% url "register" %}>Register</a>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-center">
+                <li class="nav-item">
+                    <a class="nav-link mobile-nav-align" href={% url "about" %}>About KDPM</a>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-center login-align">
+                <li class="nav-item">
+                    <a class="nav-link mobile-nav-align login-align" href={% url "login" %}>Login</a>
+                </li>
+            </ul>
+
+        {% endif %}
+
+
+        </ul>
+    </div>
+</nav>
+<div class="container-sm overflow-auto">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% block content %}
+    {% endblock %}
+</div>
+<div class="container mt-5">
+    <footer class="page-footer font-small bg-dark text-white fixed-bottom">
+        <div class="footer-copyright text-center py-3">{% now 'Y' %} Made by:
+            <a class="text-warning" href='https://github.com/karolisdedele'> Karolis Dėdelė</a>
+        </div>
+    </footer>
+</div>
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
+<script>
+var $rows = $('#search_list tr');
+$('#searchbox').keyup(function() {
+    var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+
+    $rows.show().filter(function() {
+        var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+        return !~text.indexOf(val);
+    }).hide();
+});
+</script>
+</body>
+</html>

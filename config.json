@@ -1,0 +1,7 @@
+{
+  "DEBUG": true,
+  "ALLOWED_HOSTS":[
+    "usableshockinggreenware--karolisdedele1.repl.co",
+    "127.0.0.1"
+  ]
+}

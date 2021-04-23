@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <div class="text-center">
+        <h1 class="mt-5">About KDPM</h1>
+        <p class="lead">KDPM aims to help inexperienced computer users use secure passwords. Most password managers
+            tend to have hard to understand interfaces which demotivates some users from using them.</p>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-4 text-wrap">
+                    <h2>Data encryption</h2>
+                    <p class="lead text-wrap text-break">
+                        KDPM uses AES-256 encryption.<br>
+                        But what encryption really is?<br>
+                        Encryption is the conversion of data from a readable format into an encoded format that can
+                        only be read or processed after it's been decrypted.<br>
+                        For example a password like "CrouchingChicken85@" would be transformed into
+                        "APnVtDRFBlwo6PC4OT6NfWy/09SYfs9k5WxmZSOaRbg=" using a secret encryption key.<br>
+                        This ensures that in the event where the database gets leaked, your data remains safe.
+                    </p>
+                </div>
+                <div class="col-sm-4 text-wrap">
+                    <h2>AES-256</h2>
+                    <p class="lead text-wrap text-break">
+                        AES means Advanced Encryption Standard. <br>
+                        256 represents the block sizes in bits. <br>
+                        Simply put it takes your password, using a secret encryption key rearranges it 14 times while
+                        adding random letters with each rearrangement and transforms it into scrambled text.<br>
+                        For a more in dept explanation on how it works please visit: <br>
+                        <a class="text-warning" href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia</a>
+                        or
+                        <a class="text-warning"
+                           href="https://www.n-able.com/blog/aes-256-encryption-algorithm">N-able</a>
+                    </p>
+                </div>
+                <div class="col-sm-4">
+                    <h2>KDPM's purpose</h2>
+                    <p class="lead text-wrap text-break">
+                        One of the main purposes of this project is to offer free password manager services. People tend
+                        to get discouraged when presented with a payment (often called "paywall") to use a service and
+                        just think of it as a nuisance.<br>
+                        One other purpose is to offer password manager services for inexperienced computer users so they
+                        would be able to use safe passwords without troubling themselves.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

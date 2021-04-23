@@ -1,0 +1,7 @@
+<script>
+    if (window.confirm("This action will delete stored password for account {{ account.account }}")) {
+        window.location.href = '{% url 'delete-password' delete_id=account.id  %}';
+    } else {
+        window.location.href = '{% url 'view-stored-passwords'%}';
+    }
+</script>
