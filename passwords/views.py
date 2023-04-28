@@ -28,9 +28,7 @@ from .password_generator import pw_generator
 
 def aes_action(request, input, decrypt, salt, iv):
     a = '{}{}'.format(request.user.email, request.user.username)
-    # Get 32bit length password hash with MD5:
     password = md5(a.encode()).hexdigest()
-    # Generate and return AES key from password hash and salt
     key = PBKDF2(password, salt).read(32)
     aes = AESModeOfOperationCTR(key, Counter(iv))
     if decrypt:
@@ -40,6 +38,7 @@ def aes_action(request, input, decrypt, salt, iv):
 
 def home(request):
     return render(request, 'home.html', context={'title': 'Welcome to KDPM'})
+
 
 
 def about(request):
