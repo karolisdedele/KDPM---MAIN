@@ -24,7 +24,6 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('about', views.about, name='about'),
     # Passwords
-    path('generate_password', views.generate_password, name='generate_password'),
     path('admin/', admin.site.urls),
     path('view_passwords', views.view_stored_passwords, name='view-stored-passwords'),
     path('add_password', views.add_password, name='add-stored-password'),

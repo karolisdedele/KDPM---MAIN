@@ -36,11 +36,13 @@ with open(os.path.join(BASE_DIR, 'config.json'), 'r', encoding='utf-8') as confi
 SECRET_KEY = SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config.get('DEBUG', True)
+DEBUG = True
 
 ALLOWED_HOSTS = config.get('ALLOWED_HOSTS', [])
 
 # Application definition
+
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -50,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'crispy_forms',
+    'crispy_bootstrap5',
     'passwords.apps.PasswordsConfig',
 ]
 
@@ -129,13 +132,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = '/kpm/static/'
-if DEBUG:
-    STATICFILES_DIRS = [
-        os.path.join(BASE_DIR, 'static')
-    ]
-else:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_URL = '/static/'
+STATIC_ROOT = '/home/kdpm/KDPM---MAIN/static'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 LOGIN_REDIRECT_URL = 'view-stored-passwords'
+DEFAULT_AUTO_FIELD='django.db.models.AutoField' 
 LOGIN_URL = 'login'
