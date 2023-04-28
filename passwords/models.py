@@ -10,7 +10,7 @@ class CustomUser(AbstractUser):
 
 class StoredPasswords(models.Model):
     platform = models.CharField(max_length=256)
-    account = models.CharField(max_length=256)
+    account = models.BinaryField(max_length=1024,editable=True)
     password = models.BinaryField(max_length=1024)
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     # iv = models.BigIntegerField(default=secrets.randbits(256), editable=False)

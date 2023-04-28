@@ -18,6 +18,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template.loader import render_to_string
 from .tokens import account_activation_token
 from django.contrib.auth import get_user_model
+
 User = get_user_model()
 # apps
 from .forms import CustomUserCreationForm, CustomUserChangeForm
@@ -26,38 +27,22 @@ from .password_generator import pw_generator
 
 
 def aes_action(request, input, decrypt, salt, iv):
-    """
-    Encrypts or decrypts data from db
-    :param request:
-    :param input: Enter plaintext or cipher
-    :param decrypt: False - encrypt, True - decrypt
-    :return:
-    """
     a = '{}{}'.format(request.user.email, request.user.username)
-    # Get 32bit length password hash with MD5:
     password = md5(a.encode()).hexdigest()
-    # Generate and return AES key from password hash and salt
     key = PBKDF2(password, salt).read(32)
-    # Generate AES CTR block:
     aes = AESModeOfOperationCTR(key, Counter(iv))
-    # Decrypt input if decrypt variable is set to True...
     if decrypt:
         return aes.decrypt(input).decode()
-    # ... otherwise, encrypt input
     return aes.encrypt(input)
-
-
-def generate_password(request):
-    if request.method == 'POST' and 'run_script' in request.POST:
-        pw_generator()
-    return render(request, 'Generate_password.html', context={'title': 'Password Generator'})
 
 
 def home(request):
     return render(request, 'home.html', context={'title': 'Welcome to KPM'})
 
+
 def about(request):
-    return render(request, 'about.html', context={'title': 'about'})
+    return render(request, 'about.html', context={'title': 'About'})
+
 
 @login_required
 def add_password(request):
@@ -65,14 +50,13 @@ def add_password(request):
         platform = request.POST.get('platform')
         account = request.POST.get('account')
         password = request.POST.get('password')
-        print(platform, account, password)
         salt = urandom(16)
-        print(type(salt))
         iv = randbits(256)
-        encrypted_password = aes_action(request, password, salt=salt, iv=iv, decrypt=0)
+        encrypted_account= aes_action(request, account, salt=salt, iv=iv, decrypt=False)
+        encrypted_password = aes_action(request, password, salt=salt, iv=iv, decrypt=False)
         StoredPasswords.objects.create(
             platform=platform,
-            account=account,
+            account=encrypted_account,
             password=encrypted_password,
             salt=salt,
             iv=str(iv),
@@ -91,8 +75,9 @@ def view_stored_passwords(request):
     passwords = [{
         'id': foo.id,
         'platform': foo.platform,
-        'account': foo.account,
-        'password': aes_action(request, input=foo.password, decrypt=True, salt=foo.salt, iv=int(foo.iv))}
+        'account': aes_action(request, input=foo.account, decrypt=True, salt=foo.salt, iv=int(foo.iv)),
+        'password': aes_action(request, input=foo.password, decrypt=True, salt=foo.salt, iv=int(foo.iv))
+    }
         for foo in StoredPasswords.objects.filter(owner=request.user)]
 
     return render(request, 'password_viewer.html', context={'title': 'Stored passwords', 'passwords': passwords})
@@ -101,27 +86,18 @@ def view_stored_passwords(request):
 @login_required
 def update_user_details(request):
     if request.method == 'POST':
-        deciphered_passwords = [
-            (foo.id,
-             aes_action(request, input=foo.password, decrypt=True, salt=foo.salt, iv=int(foo.iv)))
-            for foo in StoredPasswords.objects.filter(owner=request.user)
-        ]
-        form = CustomUserChangeForm(request.POST, instance=request.user)
+        form = PasswordChangeForm(request.user, request.POST)
         if form.is_valid():
-
-            form.save()
-            for pass_id, pwd in deciphered_passwords:
-                entry = StoredPasswords.objects.get(id=pass_id)
-                entry.password = aes_action(request, input=pwd, salt=entry.salt, iv=int(entry.iv), decrypt=False)
-                entry.save()
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
             messages.add_message(request, messages.INFO, 'Password updated successfully')
+            return redirect('profile')
         else:
-            messages.add_message(request, messages.WARNING, 'Password could not be changed')
-        return redirect('view-stored-passwords')
+            messages.add_message(request, messages.WARNING, 'Error. One of the passwords was entered incorrectly.')
     else:
-        return render(request, 'form_template.html',
-                      context={'title': 'Update password',
-                               'form': CustomUserChangeForm(instance=request.user)})
+        form = PasswordChangeForm(request.user)
+        return redirect('profile')
+
 
 
 @login_required
@@ -170,7 +146,7 @@ def register(request):
 def activate(request, uidb64, token):
     try:
         uid = force_text(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk = uid)
+        user = User.objects.get(pk=uid)
     except(TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
     if user is not None and account_activation_token.check_token(user, token):
@@ -207,28 +183,32 @@ def delete(request, delete_id):
 def update_stored_password(request, update_id):
     stored_password = StoredPasswords.objects.get(id=update_id)
     if request.method == 'POST':
+        platform = request.POST.get('platform')
         account = request.POST.get('account')
         password = request.POST.get('password')
-        if account != stored_password.account:
-            stored_password.account = account
-            stored_password.save()
+        old_account = aes_action(request, input=stored_password.account, decrypt=True, salt=stored_password.salt,
+                                  iv=int(stored_password.iv))
         old_password = aes_action(request, input=stored_password.password, decrypt=True, salt=stored_password.salt,
                                   iv=int(stored_password.iv))
-        if password != old_password:
+        if password != old_password or account != old_account or platform != stored_password.platform:
             salt = urandom(16)
             iv = randbits(256)
-            encrypted_password = aes_action(request, password, salt=salt, iv=iv, decrypt=0)
+            encrypted_password = aes_action(request, password, salt=salt, iv=iv, decrypt=False)
+            encrypted_account = aes_action(request, account, salt=salt, iv=iv, decrypt=False)
+            stored_password.platform = platform
             stored_password.password = encrypted_password
+            stored_password.account = encrypted_account
             stored_password.salt = salt
             stored_password.iv = str(iv)
             stored_password.save()
-
         messages.add_message(request, messages.SUCCESS, 'Password updated successfully')
-
     return render(request, 'add_password.html', context={
         'title': 'Update Account Data',
         'purpose': 'Updated selected account data',
-        'account': stored_password.account,
+        'platform': stored_password.platform,
+        'account': aes_action(request, input=stored_password.account, decrypt=True, salt=stored_password.salt,
+                               iv=int(stored_password.iv)),
         'password': aes_action(request, input=stored_password.password, decrypt=True, salt=stored_password.salt,
                                iv=int(stored_password.iv))
     })
+
